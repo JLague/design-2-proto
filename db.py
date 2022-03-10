@@ -19,11 +19,13 @@ class UPCDatabase:
         self.db_path = db_path
         self.csv_path = csv_path
         self.table_name = table_name
-        self.con = self.open()
-        self.cur = self.con.cursor()
+        self.con = None
 
         if not self.db_path.exists() or normalize:
             self.normalize()
+        
+        self.con = self.open()
+        self.cur = self.con.cursor()
     
     def __del__(self):
         self.close()
@@ -38,9 +40,10 @@ class UPCDatabase:
         """
         Opens the UPC database.
         """
-        con = sqlite3.connect(self.db_path)
-        con.row_factory = sqlite3.Row
-        return con
+        if self.con is None:
+            self.con = sqlite3.connect(str(self.db_path))
+            self.con.row_factory = sqlite3.Row
+        return self.con
     
     def close(self):
         """
@@ -49,13 +52,13 @@ class UPCDatabase:
         self.cur.close()
         self.con.close()
 
-    def get_upc_info(self, upc: str) -> dict | None:
+    def get_upc_info(self, upc: str) -> sqlite3.Row:
         """
         Get info about UPC from the database.
         """
         self.cur.execute(f"SELECT * FROM {self.table_name} WHERE upc='{upc}';")
         res = self.cur.fetchone()
-        return dict(res) if res else None
+        return res
     
     def normalize(self):
         """
@@ -70,7 +73,7 @@ class UPCDatabase:
         out.seek(0)
         df = pd.read_csv(out, sep=',', names=COLUMNS, dtype=DTYPES, engine="python", on_bad_lines=bad_line_handler)
         df.desc = df.desc.str.strip()
-        df.to_sql('upc', self.con, index=False, if_exists='replace')
+        df.to_sql('upc', self.open(), index=False, if_exists='replace')
         out.close()
 
 
@@ -84,4 +87,4 @@ def bad_line_handler(line: list[str]) -> list[str] | None:
 
 if __name__=='__main__':
     db = UPCDatabase()
-    print(db.get_upc_info("0715067020402"))
+    print(dict(db.get_upc_info("0715067020402")))
