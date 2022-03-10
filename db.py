@@ -73,6 +73,7 @@ class UPCDatabase:
         out.seek(0)
         df = pd.read_csv(out, sep=',', names=COLUMNS, dtype=DTYPES, engine="python", on_bad_lines=bad_line_handler)
         df.desc = df.desc.str.strip()
+        df.upc = df.upc.str[1:]
         df.to_sql('upc', self.open(), index=False, if_exists='replace')
         out.close()
 
@@ -86,5 +87,5 @@ def bad_line_handler(line: list[str]) -> list[str] | None:
 
 
 if __name__=='__main__':
-    db = UPCDatabase()
-    print(dict(db.get_upc_info("0715067020402")))
+    db = UPCDatabase(normalize=True)
+    print(dict(db.get_upc_info("715067020402")))
