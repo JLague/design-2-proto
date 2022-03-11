@@ -1,4 +1,4 @@
 pandas
 matplotlib
-PyQt5
 pyserial
+PySide6
