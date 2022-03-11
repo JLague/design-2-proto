@@ -1,5 +1,5 @@
-from PySide6.QtCore import QAbstractTableModel, Qt
 import db
+from PySide6.QtCore import QAbstractTableModel, Qt
 
 
 class FactureModel(QAbstractTableModel):

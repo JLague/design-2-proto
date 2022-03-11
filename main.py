@@ -1,8 +1,8 @@
+import model
+import sys
 from PySide6.QtWidgets import *
 from PySide6.QtGui import *
 from PySide6.QtCore import *
-import model
-import sys
 
 TEST_UPC = "715067004297"
 
