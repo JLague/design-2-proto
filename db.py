@@ -78,7 +78,7 @@ class UPCDatabase:
         out.close()
 
 
-def bad_line_handler(line: list[str]) -> list[str] | None:
+def bad_line_handler(line: list[str]) -> list[str]:
     """
     Handles a bad line in the UPC database.
     The usual format is "upc, format, desc, unused, ..., unused, prix".
