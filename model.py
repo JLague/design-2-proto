@@ -39,7 +39,7 @@ class FactureModel(QAbstractTableModel):
         new_row = self.db.get_upc_info(upc)
         if new_row is None:
             return False
-        self.facture.append(row)
+        self.facture.append(new_row)
         self.facture.append(new_row + [1])
         self.layoutChanged.emit()
         self.total += double(row[3])
