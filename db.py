@@ -87,5 +87,5 @@ def bad_line_handler(line: list[str]) -> list[str]:
 
 
 if __name__=='__main__':
-    db = UPCDatabase(normalize=True)
+    db = UPCDatabase()
     print(dict(db.get_upc_info("715067020402")))
