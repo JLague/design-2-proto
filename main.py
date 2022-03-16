@@ -32,42 +32,45 @@ class MainWidget(QWidget):
     def __init__(self):
         QWidget.__init__(self)
 
-        facture_policy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        facture_policy.setHorizontalStretch(1)
-
         # Facture table
         self.facture_model = model.FactureModel()
         self.facture_table = QTableView()
         self.facture_table.setModel(self.facture_model)
         self.facture_table.horizontalHeader().setStretchLastSection(True)
         self.facture_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
-        self.facture_table.setSizePolicy(facture_policy)
         
         self.facture_model.add_upc(TEST_UPC)
 
         self.down = QFormLayout()
-        self.facture_total = QLabel(self.facture_model.get_total()+"  $")
+        self.facture_total = QLabel()
+        # self.facture_total.setAlignment(Qt.AlignRight)
         self.down.addRow("Total: ", self.facture_total)
-       
+        self.down.setFieldGrowthPolicy(QFormLayout.ExpandingFieldsGrow)
+        # self.down.setAlignment(Qt.AlignRight)
+        self.down.setLabelAlignment(Qt.AlignRight)
+        self.update_total()
 
         self.left = QVBoxLayout()
         self.left.addWidget(self.facture_table)
         self.left.addLayout(self.down)
+        # self.left.setAlignment(self.down, Qt.AlignRight)
 
         self.upc_input = QLineEdit()
         self.upc_input.setPlaceholderText("UPC")
         self.add = QPushButton("Ajouter UPC")
+        self.delete_rows = QPushButton("Effacer les lignes")
         self.clear = QPushButton("Vider")
 
         self.right = QFormLayout()
         self.right.addRow("UPC: ", self.upc_input)
         self.right.addRow(self.add)
+        self.right.addRow(self.delete_rows)
         self.right.addRow(self.clear)
         self.right.setFieldGrowthPolicy(QFormLayout.FieldsStayAtSizeHint)
 
         self.layout = QHBoxLayout()
-        #self.layout.addWidget(self.facture_table)
         self.layout.addLayout(self.left)
+        self.layout.setStretchFactor(self.left, 1)
         self.layout.addLayout(self.right)
         self.setLayout(self.layout)
         self.facture_table.resizeColumnsToContents()
@@ -78,7 +81,7 @@ class MainWidget(QWidget):
         self.add.clicked.connect(self.add_upc)
         self.clear.clicked.connect(self.clear_facture)
         self.facture_model.layoutChanged.connect(self.update_total)
-        self.facture_model.dataChanged.connect(self.update_total)
+        self.delete_rows.clicked.connect(self.remove_upcs)
 
     def add_upc(self):
         upc = self.upc_input.text()
@@ -86,15 +89,16 @@ class MainWidget(QWidget):
         # Check if upc is valid
         if len(upc) != 12 or not upc.isdigit() or not self.facture_model.add_upc(upc):
             show_error_dialog("UPC invalide ou non existant")
-        else:
-            self.upc_input.setText("")
                  
     def clear_facture(self):
         self.facture_model.clear_facture()
-        # self.update_total()
+    
+    def remove_upcs(self):
+        self.facture_model.remove_rows(self.facture_table.selectedIndexes())
+        self.facture_table.clearSelection()
 
     def update_total(self):
-        self.facture_total.setText(self.facture_model.get_total() + "  $") 
+        self.facture_total.setText(self.facture_model.get_total_str())
 
 def show_error_dialog(msg: str):
     msg_box = QMessageBox()
