@@ -7,7 +7,7 @@ class FactureModel(QAbstractTableModel):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.facture = []
-        self.headers = ['UPC', 'Format', 'Description', 'Prix']
+        self.headers = ['UPC', 'Format', 'Description', 'Prix', 'Quantité']
         self.db = db.UPCDatabase()
         self.total = 0.0
 
@@ -30,12 +30,19 @@ class FactureModel(QAbstractTableModel):
         return None
     
     def add_upc(self, upc: str) -> bool:
-        row = self.db.get_upc_info(upc)
-        if row is None:
+        for row in self.facture:
+            if upc == row[0]:
+                row[4] += 1
+                self.dataChanged.emit()
+                return True
+        
+        new_row = self.db.get_upc_info(upc)
+        if new_row is None:
             return False
         self.facture.append(row)
-        self.total += double(row[3])
+        self.facture.append(new_row + [1])
         self.layoutChanged.emit()
+        self.total += double(row[3])
         return True
 
     def clear_facture(self):
