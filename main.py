@@ -45,6 +45,15 @@ class MainWidget(QWidget):
         
         self.facture_model.add_upc(TEST_UPC)
 
+        self.down = QFormLayout()
+        self.facture_total = QLabel(self.facture_model.get_total()+"  $")
+        self.down.addRow("Total: ", self.facture_total)
+       
+
+        self.left = QVBoxLayout()
+        self.left.addWidget(self.facture_table)
+        self.left.addLayout(self.down)
+
         self.upc_input = QLineEdit()
         self.upc_input.setPlaceholderText("UPC")
         self.add = QPushButton("Ajouter UPC")
@@ -57,7 +66,8 @@ class MainWidget(QWidget):
         self.right.setFieldGrowthPolicy(QFormLayout.FieldsStayAtSizeHint)
 
         self.layout = QHBoxLayout()
-        self.layout.addWidget(self.facture_table)
+        #self.layout.addWidget(self.facture_table)
+        self.layout.addLayout(self.left)
         self.layout.addLayout(self.right)
         self.setLayout(self.layout)
         self.facture_table.resizeColumnsToContents()
@@ -70,15 +80,19 @@ class MainWidget(QWidget):
 
     def add_upc(self):
         upc = self.upc_input.text()
-
+       
         # Check if upc is valid
         if len(upc) != 12 or not upc.isdigit() or not self.facture_model.add_upc(upc):
             show_error_dialog("UPC invalide ou non existant")
         else:
             self.upc_input.setText("")
-
+            self.update_total()      
     def clear_facture(self):
         self.facture_model.clear_facture()
+        self.update_total()
+
+    def update_total(self):
+        self.facture_total.setText(self.facture_model.get_total() + "  $") 
 
 def show_error_dialog(msg: str):
     msg_box = QMessageBox()

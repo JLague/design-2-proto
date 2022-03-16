@@ -1,3 +1,4 @@
+from numpy import double
 import db
 from PySide6.QtCore import QAbstractTableModel, Qt
 
@@ -8,6 +9,7 @@ class FactureModel(QAbstractTableModel):
         self.facture = []
         self.headers = ['UPC', 'Format', 'Description', 'Prix']
         self.db = db.UPCDatabase()
+        self.total = 0.0
 
     def rowCount(self, parent=None):
         return len(self.facture)
@@ -32,10 +34,14 @@ class FactureModel(QAbstractTableModel):
         if row is None:
             return False
         self.facture.append(row)
+        self.total += double(row[3])
         self.layoutChanged.emit()
         return True
 
     def clear_facture(self):
         self.facture.clear()
+        self.total = 0.0
         self.layoutChanged.emit()
-    
+
+    def get_total(self):
+        return str(self.total)
