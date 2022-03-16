@@ -77,6 +77,8 @@ class MainWidget(QWidget):
     def set_behavior(self):
         self.add.clicked.connect(self.add_upc)
         self.clear.clicked.connect(self.clear_facture)
+        self.facture_model.layoutChanged.connect(self.update_total)
+        self.facture_model.dataChanged.connect(self.update_total)
 
     def add_upc(self):
         upc = self.upc_input.text()
@@ -86,10 +88,10 @@ class MainWidget(QWidget):
             show_error_dialog("UPC invalide ou non existant")
         else:
             self.upc_input.setText("")
-            self.update_total()      
+                 
     def clear_facture(self):
         self.facture_model.clear_facture()
-        self.update_total()
+        # self.update_total()
 
     def update_total(self):
         self.facture_total.setText(self.facture_model.get_total() + "  $") 
