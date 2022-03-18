@@ -4,8 +4,8 @@ import time
 import matplotlib.pyplot as plt
 import serial.tools.list_ports
 
-READ_SIZE = 3 # bytes
-FORMAT = '<HB'
+READ_SIZE = 2 # bytes
+FORMAT = '<BB'
 
 class ArduinoComm:
     def __init__(self, port=None, readsize=READ_SIZE, format=FORMAT):
