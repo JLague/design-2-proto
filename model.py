@@ -1,4 +1,3 @@
-from numpy import double
 import db
 from PySide6.QtCore import QAbstractTableModel, Qt
 
@@ -7,26 +6,31 @@ class FactureModel(QAbstractTableModel):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.facture = []
-        self.headers = ['UPC', 'Format', 'Description', 'Prix unitaire', 'Quantité']
+        self.keys = ['upc', 'format', 'desc', 'quantite', 'prix', 'prix_total']
+        self.headers = ['UPC', 'Format', 'Description', 'Quantité', 'Prix unitaire', 'Prix total']
         self.db = db.UPCDatabase()
-        self.total = 0.0
 
     def rowCount(self, parent=None):
         return len(self.facture)
 
     def columnCount(self, parent=None):
-        return len(self.headers)
+        return len(self.keys)
 
     def data(self, index, role=None):
         if not index.isValid():
             return None
+        if role == Qt.TextAlignmentRole:
+            if self.keys[index.column()] in ['quantite', 'prix', 'prix_total']:
+                return int(Qt.AlignRight | Qt.AlignVCenter)
+            return Qt.AlignCenter
         elif role != Qt.DisplayRole:
             return None
         
         # Format price
-        item = self.facture[index.row()][index.column()]
-        if index.column() == 3:
-            return '{:.2f} $'.format(item)
+        key = self.keys[index.column()]
+        item = self.facture[index.row()][key]
+        if 'prix' in key:
+            return format_currency(item)
         return item
 
     def headerData(self, section, orientation, role=None):
@@ -36,17 +40,15 @@ class FactureModel(QAbstractTableModel):
     
     def remove_rows(self, indices: list[int]):
         for index in indices:
-            self.total -= self.facture[index.row()][3] * self.facture[index.row()][4]
             self.facture.pop(index.row())
         self.layoutChanged.emit()
     
     def add_upc(self, upc: str) -> bool:
         # If upc already in table, update quantity
         for row in self.facture:
-            if upc == row[0]:
-                self.layoutAboutToBeChanged.emit()
-                row[4] += 1
-                self.total += row[3]
+            if row['upc'] == upc:
+                row['quantite'] += 1
+                row['prix_total'] += row['prix']
                 self.layoutChanged.emit()
                 return True
         
@@ -59,18 +61,21 @@ class FactureModel(QAbstractTableModel):
         
         # Add info row to table and update total
         self.layoutAboutToBeChanged.emit()
-        new_row = list(new_row)
-        new_row.append(1)
+        new_row = dict(new_row)
+        new_row['quantite'] = 1
+        new_row['prix_total'] = new_row['prix']
         self.facture.append(new_row)
-        self.total += double(new_row[3])
         self.layoutChanged.emit()
         return True
 
     def clear_facture(self):
         self.facture.clear()
-        self.total = 0.0
         self.layoutChanged.emit()
 
     def get_total_str(self) -> str:
-        s = str.format('{:.2f} $', self.total)
-        return s
+        total = sum(row['prix_total'] for row in self.facture)
+        return format_currency(total)
+
+
+def format_currency(value: float) -> str:
+    return str.format('{:.2f} $', value).replace('.', ',') 
