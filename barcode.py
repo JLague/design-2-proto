@@ -35,7 +35,7 @@ N_SAMPLES = 300
 MEAN_SAMPLE_TIME = 0.001
 VAR_SAMPLE_TIME = MEAN_SAMPLE_TIME * 100
 
-def generate_barcode(code: str) -> np.array:
+def generate_barcode(code: str) -> np.ndarray:
     """
     Generate a barcode from a code.
     """
@@ -58,7 +58,7 @@ def generate_barcode(code: str) -> np.array:
 
     return barcode
 
-def viz_barcode(barcode: np.array, ax: plt.Axes):
+def viz_barcode(barcode: np.ndarray, ax: plt.Axes):
     """
     Visualize a barcode.
     """
@@ -75,7 +75,7 @@ def viz_timeseries(values: np.array, time: np.array, ax: plt.Axes):
     ax.set_axis_off()
     return ax.fill_between(time, values, step='mid')
 
-def barcode2timeseries(barcode: np.array) -> tuple[np.array, np.array]:
+def barcode2timeseries(barcode: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """
     Convert a barcode to a time series.
 
