@@ -90,7 +90,7 @@ def barcode2timeseries(barcode: np.array) -> tuple[np.array, np.array]:
     time = np.cumsum(time_deltas)
 
     # Normalize times to barcode size
-    norm_time = ((barcode.size-1)*(time - time.min())/time.ptp()).round().astype(int)
+    norm_time = (barcode.size*(time - time.min())/time.max()).astype(int)
 
     # Generate samples from normalized times
     samples = np.fromiter(map(lambda x: barcode[x], norm_time), dtype=bool)
