@@ -45,6 +45,7 @@ class MainWidget(QWidget):
         self.right = QVBoxLayout()
         self.right.addWidget(self.upc_group)
         self.right.addWidget(self.del_rows_btn)
+        self.right.addWidget(self.delete_row)
         self.right.addWidget(self.clear_btn)
         self.right.addSpacerItem(QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding))
         self.right.addWidget(self.total_group)
@@ -89,11 +90,13 @@ class MainWidget(QWidget):
         self.add_btn = QPushButton("Ajouter")
         self.del_rows_btn = QPushButton("Effacer les lignes")
         self.clear_btn = QPushButton("Vider")
+        self.delete_row = QPushButton("Supprimer la derniere ligne")
 
         # Add widgets to form
         self.upc_form = QVBoxLayout()
         self.upc_form.addWidget(self.upc_input)
         self.upc_form.addWidget(self.add_btn)
+        
 
 
     def setup_behavior(self):
@@ -101,6 +104,11 @@ class MainWidget(QWidget):
         self.clear_btn.clicked.connect(self.clear_facture)
         self.facture_model.layoutChanged.connect(self.update_total)
         self.del_rows_btn.clicked.connect(self.remove_upcs)
+        self.delete_row.clicked.connect(self.delete_last_row)
+
+
+    def delete_last_row(self):
+        self.facture_model.delete_last_row()
 
     def add_upc(self):
         upc = self.upc_input.text()

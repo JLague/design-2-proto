@@ -71,7 +71,10 @@ class FactureModel(QAbstractTableModel):
     def clear_facture(self):
         self.facture.clear()
         self.layoutChanged.emit()
-
+    def delete_last_row(self):
+        self.facture.pop()
+        self.layoutChanged.emit()
+        
     def get_total_str(self) -> str:
         total = sum(row['prix_total'] for row in self.facture)
         return format_currency(total)
