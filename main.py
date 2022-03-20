@@ -5,7 +5,7 @@ from PySide6.QtWidgets import *
 from PySide6.QtGui import *
 from PySide6.QtCore import *
 
-ICON_PATH = Path('./ulaval_shield.svg')
+ICON_PATH = Path('data/ulaval_shield.svg')
 class MainView(QMainWindow):
     def __init__(self):
         QMainWindow.__init__(self)

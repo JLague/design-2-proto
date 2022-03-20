@@ -1,1 +1,1 @@
-db/upcPrice.txt filter=lfs diff=lfs merge=lfs -text
+data/db/upcPrice.txt filter=lfs diff=lfs merge=lfs -text

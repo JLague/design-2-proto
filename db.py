@@ -4,8 +4,8 @@ import sqlite3
 import pandas as pd
 from pathlib import Path
 
-CSV_PATH = Path('db/upcPrice.txt')
-DB_PATH = Path('db/upcPrice.db')
+CSV_PATH = Path('data/db/upcPrice.txt')
+DB_PATH = Path('data/db/upcPrice.db')
 TABLE_NAME = 'upc'
 COLUMNS = ['upc', 'format', 'desc', 'prix']
 DTYPES = {'upc': 'str', 'format': 'str', 'desc': 'str', 'prix': 'float'}
