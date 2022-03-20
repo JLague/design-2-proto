@@ -28,7 +28,7 @@ reverse={
     9:[2, 1, 1, 3],
 }
 
-with open("data/data.txt") as data:
+with open("data/barcode.txt") as data:
     array = np.loadtxt(data, delimiter=",")
 code=list(array[:,0])
 temps=list(array[:,1])
