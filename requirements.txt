@@ -2,3 +2,5 @@ pandas
 matplotlib
 pyserial
 PySide6
+playsound
+PyObjC
