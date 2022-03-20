@@ -1,7 +1,5 @@
-from audioop import reverse
 from base64 import encode
 from msilib.schema import Error
-from unittest import skip
 import numpy as np
 from itertools import groupby
 from operator import itemgetter
@@ -75,8 +73,8 @@ def identification(liste):
             val=reverse[cle]
             fev.append((cle,((l[0]-val[0])**2+(l[1]-val[1])**2+(l[2]-val[2])**2+(l[3]-val[3])**2)**0.5))
         totdroite.append(min(fev, key=itemgetter(1)))
-    print(totgauche)
-    print(totdroite)
+    #print(totgauche)
+    #print(totdroite)
     for i,j in zip(totgauche, totdroite):
         if i[1]<j[1]:
             final.append((i[0]))
