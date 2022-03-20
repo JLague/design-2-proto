@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from pyzbar import pyzbar
 
 EDGE = '101'
 MIDDLE = '01010'
@@ -31,6 +32,7 @@ CODES = {
 }
 
 CODE_LEN = 12
+CODE_HEIGHT = 15
 N_SAMPLES = 300
 MEAN_SAMPLE_TIME = 0.001
 VAR_SAMPLE_TIME = MEAN_SAMPLE_TIME * 100
@@ -75,7 +77,7 @@ def viz_timeseries(values: np.array, time: np.array, ax: plt.Axes):
     ax.set_axis_off()
     return ax.fill_between(time, values, step='mid')
 
-def barcode2timeseries(barcode: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+def barcode2timeseries(barcode: np.ndarray) -> np.ndarray:
     """
     Convert a barcode to a time series.
 
@@ -95,7 +97,7 @@ def barcode2timeseries(barcode: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     # Generate samples from normalized times
     samples = np.fromiter(map(lambda x: barcode[x], norm_time), dtype=bool)
 
-    return samples, time
+    return samples
 
 def timeseries2barcode():
     """
@@ -103,10 +105,31 @@ def timeseries2barcode():
     """
     pass
 
+def decode_barcode(barcode: np.ndarray) -> pyzbar.Decoded:
+    """
+    Decode a barcode.
+
+    Returns:
+        The decoded code.
+    """
+    barcode = (barcode * 255).reshape(1, -1).astype(np.uint8)
+    barcode = np.tile(barcode, (CODE_HEIGHT, 1))
+    image = (barcode.tobytes(), *reversed(barcode.shape))
+    dec = pyzbar.decode(image, symbols=[pyzbar.ZBarSymbol.EAN13])
+    return dec[0].data[1:] if dec else None
+
+def invert(barcode: np.ndarray) -> np.ndarray:
+    """
+    Invert a barcode.
+    """
+    return np.logical_not(barcode)
+
+
 if __name__ == '__main__':
-    barcode = generate_barcode("712345678904")
-    samples, time = barcode2timeseries(barcode)
-    fig, (ax1, ax2) = plt.subplots(2, 1)
-    viz_barcode(barcode, ax1)
-    viz_timeseries(samples, time, ax2)
-    plt.show()
+    barcode = invert(generate_barcode("712345678904"))
+    samples = barcode2timeseries(barcode)
+    print(decode_barcode(samples))
+    # fig, (ax1, ax2) = plt.subplots(2, 1)
+    # viz_barcode(barcode, ax1)
+    # viz_timeseries(samples, ax2)
+    # plt.show()
