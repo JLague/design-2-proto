@@ -42,7 +42,11 @@ class FactureModel(QAbstractTableModel):
         for index in indices:
             self.facture.pop(index.row())
         self.layoutChanged.emit()
-    
+        
+    def delete_last_row(self):
+        self.facture.pop()
+        self.layoutChanged.emit()
+
     def add_upc(self, upc: str) -> bool:
         # If upc already in table, update quantity
         for row in self.facture:

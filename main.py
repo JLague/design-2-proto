@@ -90,6 +90,7 @@ class MainWidget(QWidget):
         self.add_btn = QPushButton("Ajouter")
         self.del_rows_btn = QPushButton("Effacer les lignes")
         self.clear_btn = QPushButton("Vider")
+        self.delete_row = QPushButton("Supprimer la derniere ligne")
 
         # Add widgets to form
         self.upc_form = QVBoxLayout()
@@ -102,6 +103,11 @@ class MainWidget(QWidget):
         self.clear_btn.clicked.connect(self.clear_facture)
         self.facture_model.layoutChanged.connect(self.update_total)
         self.del_rows_btn.clicked.connect(self.remove_upcs)
+        self.delete_row.clicked.connect(self.delete_last_row)
+    
+    def delete_last_row(self):
+        self.facture_model.delete_last_row()
+        # self.facture_table.layoutChange.emit()
 
     def add_upc(self):
         upc = self.upc_input.text()
@@ -122,7 +128,6 @@ class MainWidget(QWidget):
 
     def add_arduino_upc(self):
 
-        self.facture_table.layoutChange.emit()
         self.code_barre = barcode.Barcode()
         upc = self.code_barre.decode.decode('utf-8')
         # upc = "000000000000"
