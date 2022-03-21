@@ -1,4 +1,5 @@
 import model
+import barcode
 import sys
 from pathlib import Path
 from PySide6.QtWidgets import *
@@ -118,6 +119,15 @@ class MainWidget(QWidget):
 
     def update_total(self):
         self.facture_total.setText(self.facture_model.get_total_str())
+
+    def add_arduino_upc(self):
+
+        self.facture_table.layoutChange.emit()
+        self.code_barre = barcode.Barcode()
+        upc = self.code_barre.decode.decode('utf-8')
+        # upc = "000000000000"
+        self.facture_model.add_upc(upc)
+        self.facture_table.layoutChange.emit()
 
 def create_facture_table():
     pass
