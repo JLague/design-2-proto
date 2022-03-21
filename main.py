@@ -46,6 +46,7 @@ class MainWidget(QWidget):
         self.right = QVBoxLayout()
         self.right.addWidget(self.upc_group)
         self.right.addWidget(self.del_rows_btn)
+        self.right.addWidget(self.delete_row)
         self.right.addWidget(self.clear_btn)
         self.right.addSpacerItem(QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding))
         self.right.addWidget(self.total_group)
@@ -54,10 +55,9 @@ class MainWidget(QWidget):
         self.layout.addWidget(self.facture_table)
         self.layout.addLayout(self.right)
         self.layout.setStretch(0, 1)
-        self.setLayout(self.layout)
-
+        self.setLayout(self.layout) 
         self.setup_behavior()
-    
+
     def setup_facture_table(self):
         # Create table
         self.facture_model = model.FactureModel()
@@ -88,8 +88,8 @@ class MainWidget(QWidget):
         self.upc_input = QLineEdit()
         self.upc_input.setPlaceholderText("Code UPC")
         self.add_btn = QPushButton("Ajouter")
-        self.del_rows_btn = QPushButton("Effacer les lignes")
-        self.clear_btn = QPushButton("Vider")
+        self.del_rows_btn = QPushButton("Effacer une ligne selectionee")
+        self.clear_btn = QPushButton("Vider la facture")
         self.delete_row = QPushButton("Supprimer la derniere ligne")
 
         # Add widgets to form
@@ -130,9 +130,8 @@ class MainWidget(QWidget):
 
         self.code_barre = barcode.Barcode()
         upc = self.code_barre.decode.decode('utf-8')
-        # upc = "000000000000"
         self.facture_model.add_upc(upc)
-        self.facture_table.layoutChange.emit()
+        self.facture_model.layoutChanged.emit()
 
 def create_facture_table():
     pass
