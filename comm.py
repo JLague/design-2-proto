@@ -1,8 +1,10 @@
+from curses import baudrate
 import serial
 import struct
 from barcode import Barcode, barcode2timeseries
 import matplotlib.pyplot as plt
 import serial.tools.list_ports
+import audio
 
 READ_SIZE = 1 # bytes
 FORMAT = '<B'
@@ -12,7 +14,7 @@ PATTERN_END = b'\x03'
 class ArduinoComm:
     def __init__(self, port=None, readsize=READ_SIZE):
         if port is None: port = find_arduino_port()
-        self.ser = serial.Serial(port, 115200, timeout=None)
+        self.ser = serial.Serial(port, 1000000, timeout=None)
         self.readsize = readsize
         self.format = format
         self.values = []
@@ -65,12 +67,16 @@ def get_sweep(comm: ArduinoComm) -> list:
         if val == SWEEP_END:
             break
         values.append(decode_byte(val))
+    # values = values[len(values)//4+200:len(values)//2+100]
     return values
 
 def get_n_sweeps(comm: ArduinoComm, n: int) -> list:
     values = []
     for _ in range(n):
         values += get_sweep(comm)
+    
+    # values = values[75:]
+    # values = values[25:len(values)//2 + 100
     return values
 
 def wait_until(flags: bytes) -> None:
@@ -82,9 +88,46 @@ def wait_until(flags: bytes) -> None:
 if __name__ == '__main__':
     with ArduinoComm() as comm:
         wait_until(SWEEP_END)
-        samples = get_n_sweeps(comm, 2)
-        barcode = Barcode.from_sample_list(samples)
-        print(barcode.decode())
+        # arr = np.ndarray(shape=(1, 501))
+        # print(arr)
+        # print(arr)
+        decoded = None
+        barcode = None
+        # while decoded is None:
+        for _ in range(2):
+            arr = get_sweep(comm)
+            # print(arr)
+            barcode = Barcode.from_sample_list(arr)
+            decoded = barcode.decode()
+            # print(decoded)
+        barcode.show_image()
+
+            # barcode.save_image()
+
+            # time.sleep(1.5)
+
+            # if decoded is not None:
+                # audio.play_sound(audio.Sound.CONFIRM)
+                # barcode.show_image()
+                # print(decoded)
+                # break
+        # audio.play_sound(audio.Sound.CONFIRM)
+                
+        #     # print(arr)
+        #     # wait_until(SWEEP_END)
+        # audio.play_sound(audio.Sound.CONFIRM)
+        # barcode.show_image()
+        
+        # samples1 = np.array(get_n_sweeps(comm, 1))
+        # samples2 = np.array(get_sweep(comm))
+
+        # samples = (samples1 + samples2
+        # print(arr)
+        
+        # print(type(arr))
+        # barcode = Barcode.from_sample_list(arr)
+        # barcode.show_image()
+        # print(barcode.decode())
 
 # if __name__ == '__main__':
 #     with ArduinoComm() as comm:
