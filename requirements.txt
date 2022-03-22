@@ -3,5 +3,4 @@ matplotlib
 pyserial
 PySide6
 playsound
-PyObjC
 pyzbar
