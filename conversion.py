@@ -1,8 +1,10 @@
-from base64 import encode
-from msilib.schema import Error
+# from base64 import encode
+# from msilib.schema import Error
 import numpy as np
 from itertools import groupby
 from operator import itemgetter
+from pyzbar import pyzbar
+
 forward={
     0:[3, 2, 1, 1],
     1:[2, 2, 2, 1],
@@ -30,7 +32,7 @@ reverse={
 
 with open("data/barcode.txt") as data:
     array = np.loadtxt(data, delimiter=",")
-code=list(array[:,0])
+code=array[:,0].astype(np.uint8)
 temps=list(array[:,1])
 #del code[:12]
 #del code[-12:]
@@ -83,5 +85,6 @@ def identification(liste):
     return(final)
 
 
-
-print(identification(encode_list(code)))
+print(code.tobytes())
+print(pyzbar.decode((code.tobytes(), len(code), 1), symbols=[pyzbar.ZBarSymbol.UPCA]))
+# print(identification(encode_list(code)))

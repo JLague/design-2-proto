@@ -41,11 +41,11 @@ VAR_SAMPLE_TIME = MEAN_SAMPLE_TIME * 100
 UPC = b'7472389482343'
 
 class Barcode:
-    CODE_HEIGHT = 50
+    CODE_HEIGHT = 500
 
     def __init__(self, samples: np.ndarray):
         self.samples = samples
-        # self.samples = Barcode._invert(self.samples)
+        self.samples = Barcode._invert(self.samples)
         self.samples = Barcode._expand(self.samples)
         self.shape = reversed(self.samples.shape)
 
