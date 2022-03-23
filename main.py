@@ -1,16 +1,16 @@
 from concurrent.futures import process
 from email.mime import audio
+from inspect import trace
 import multiprocessing
 import model
-import barcode
 import sys
 from pathlib import Path
 from PySide6.QtWidgets import *
 from PySide6.QtGui import *
 from PySide6.QtCore import *
-import multiprocessing 
+from multiprocessing import Queue
 import comm
-import queue
+import time
 
 ICON_PATH = Path('data/ulaval_shield.svg')
 class MainView(QMainWindow):
@@ -131,13 +131,17 @@ class MainWidget(QWidget):
 
     def update_total(self):
         self.facture_total.setText(self.facture_model.get_total_str())
-
-    def add_arduino_upc(self):
-
-        self.code_barre = barcode.Barcode()
-        upc = self.code_barre.decode.decode('utf-8')
-        self.facture_model.add_upc(upc)
-        self.facture_model.layoutChanged.emit()
+    
+    def add_arduino_upc(self, codes=Queue(10)):
+        # self.code_barre = barcode.Barcode()
+        # upc = self.code_barre.decode.decode('utf-8')           
+        while True:
+            if not codes.empty():
+                item = codes.get()
+                self.facture_model.add_upc(item)
+                self.facture_model.layoutChanged.emit()
+            time.sleep(2)
+        return
 
 def create_facture_table():
     pass
@@ -149,18 +153,18 @@ def show_error_dialog(msg: str):
     msg_box.setWindowTitle("Erreur")
     msg_box.exec()
 
-
 if __name__ == '__main__':
-    # code = queue.Queue()
     app = QApplication(sys.argv)
-
     window = MainView()
     window.setWindowTitle('Équipe 12 - PIE Engineering')
     window.resize(1000,800)
     window.show()
-    
-    p_scan = multiprocessing.Process(target=comm.laser)
-    p_scan.start()
-    # print(code.get())
-    p_scan.join()
+
+    q = Queue(10)
+    P = multiprocessing.Process(target = comm.laser, args = (q, ))
+    C = multiprocessing.Process(target = MainWidget.add_arduino_upc, args = (q, ))
+    P.start()
+    C.start()
+    # P.join()
+    # C.join()
     sys.exit(app.exec())
