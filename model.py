@@ -83,3 +83,5 @@ class FactureModel(QAbstractTableModel):
 
 def format_currency(value: float) -> str:
     return str.format('{:.2f} $', value).replace('.', ',') 
+
+

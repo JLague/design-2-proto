@@ -10,6 +10,7 @@ from PySide6.QtGui import *
 from PySide6.QtCore import *
 import multiprocessing 
 import comm
+import queue
 
 ICON_PATH = Path('data/ulaval_shield.svg')
 class MainView(QMainWindow):
@@ -150,15 +151,16 @@ def show_error_dialog(msg: str):
 
 
 if __name__ == '__main__':
-    
-
+    # code = queue.Queue()
     app = QApplication(sys.argv)
 
     window = MainView()
     window.setWindowTitle('Équipe 12 - PIE Engineering')
     window.resize(1000,800)
     window.show()
-    p_scan = multiprocessing.Process(target=comm.__name__)
+    
+    p_scan = multiprocessing.Process(target=comm.laser)
     p_scan.start()
+    # print(code.get())
     p_scan.join()
     sys.exit(app.exec())

@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from pyzbar import pyzbar
-import cv2
+# import cv2
 from PIL import Image
 
 EDGE = '101'
