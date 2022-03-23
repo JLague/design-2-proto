@@ -1,6 +1,7 @@
 import re
 import io
 import sqlite3
+import csv
 import pandas as pd
 from pathlib import Path
 
@@ -65,13 +66,16 @@ class UPCDatabase:
         Normalizes the UPC database.
         """
         out = io.StringIO()
-        pattern = re.compile(r'[\b\r]')
+        pattern = re.compile(r'[\b\r\t]')
+        other_pattern = re.compile(r'\"\s+')
         with open(self.csv_path, 'r', encoding='cp850', newline='\n') as db_in:
             for line in db_in:
-                out.write(re.sub(pattern, '', line))
+                line = pattern.sub('', line)
+                line = other_pattern.sub('"', line)
+                out.write(line)
         
         out.seek(0)
-        df = pd.read_csv(out, sep=',', names=COLUMNS, dtype=DTYPES, engine="python", on_bad_lines=bad_line_handler)
+        df = pd.read_csv(out, names=COLUMNS, dtype=DTYPES, engine="python", on_bad_lines=bad_line_handler, skipinitialspace=True)
         df.desc = df.desc.str.strip()
         df.upc = df.upc.str[1:]
         df.to_sql('upc', self.open(), index=False, if_exists='replace')
@@ -88,4 +92,4 @@ def bad_line_handler(line: list[str]) -> list[str]:
 
 if __name__=='__main__':
     db = UPCDatabase()
-    print(dict(db.get_upc_info("715067020402")))
+    print(dict(db.get_upc_info("000000094122")))
