@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from pyzbar import pyzbar
+import cv2
 from PIL import Image
 
 EDGE = '101'
@@ -40,11 +41,11 @@ VAR_SAMPLE_TIME = MEAN_SAMPLE_TIME * 100
 UPC = b'7472389482343'
 
 class Barcode:
-    CODE_HEIGHT = 15
+    CODE_HEIGHT = 50
 
     def __init__(self, samples: np.ndarray):
         self.samples = samples
-        self.samples = Barcode._invert(self.samples)
+        # self.samples = Barcode._invert(self.samples)
         self.samples = Barcode._expand(self.samples)
         self.shape = reversed(self.samples.shape)
 
@@ -73,7 +74,7 @@ class Barcode:
             The decoded code.
         """
         image = (self.samples.tobytes(), *self.shape)
-        dec = pyzbar.decode(image, symbols=[pyzbar.ZBarSymbol.EAN13])
+        dec = pyzbar.decode(image)
         return dec[0].data[1:] if dec else None
     
     def show_image(self) -> None:
@@ -81,6 +82,12 @@ class Barcode:
         Get the barcode as a PIL image.
         """
         Image.fromarray(self.samples).show()
+
+    def save_image(self):
+        """
+        Save the barcode as an image.
+        """
+        Image.fromarray(self.samples).save('data/barcode.png')
     
     def _invert(samples):
         """
@@ -171,13 +178,17 @@ def invert(barcode: np.ndarray) -> np.ndarray:
 
 
 if __name__ == '__main__':
+    # im = Image.open('data/upc.jpeg')
+    # im.show()
+    barcode = pyzbar.decode(Image.open('data/barcode.png'))
+    print(barcode)
     # with open('data/barcode.txt', 'r') as f:
     #     array = np.loadtxt(f, delimiter=",")
     # barcode = array[:, 0]
-    barcode = Barcode.from_num(724771001911)
+    # barcode = Barcode.from_num(724771001911)
     # barcode = invert(generate_barcode("712345678904"))
     # samples = barcode2timeseries(barcode)
-    print(barcode.decode().decode('utf-8'))
+    # print(barcode.decode())
     # fig, (ax1, ax2) = plt.subplots(2, 1)
     # viz_barcode(barcode, ax1)
     # viz_timeseries(samples, ax2)
