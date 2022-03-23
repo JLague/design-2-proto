@@ -1,19 +1,18 @@
-from concurrent.futures import process
-from email.mime import audio
-import multiprocessing
 import model
-import barcode
 import sys
+import scanner
+import multiprocessing as mp
+import audio
+from multiprocessing.connection import Pipe, Connection
 from pathlib import Path
 from PySide6.QtWidgets import *
 from PySide6.QtGui import *
 from PySide6.QtCore import *
-import multiprocessing 
-import comm
+
 
 ICON_PATH = Path('data/ulaval_shield.svg')
 class MainView(QMainWindow):
-    def __init__(self):
+    def __init__(self, pipe: Connection) -> None:
         QMainWindow.__init__(self)
         self.setWindowIcon(QIcon(ICON_PATH.as_posix()))
 
@@ -26,8 +25,12 @@ class MainView(QMainWindow):
 
         self.file_menu.addAction(exit_action)
 
-        self.main_widget = MainWidget()
+        self.main_widget = MainWidget(pipe)
         self.setCentralWidget(self.main_widget)
+
+        # self.timer = QTimer()
+        # self.timer.timeout.connect(self.main_widget.add_arduino_upc)
+        # self.timer.start(1000)
     
     @Slot()
     def exit_app(self, checked):
@@ -35,8 +38,9 @@ class MainView(QMainWindow):
 
 
 class MainWidget(QWidget):
-    def __init__(self):
+    def __init__(self, pipe: Connection) -> None:
         QWidget.__init__(self)
+        self.pipe = pipe
 
         # Create widgets
         self.setup_facture_table()
@@ -132,14 +136,17 @@ class MainWidget(QWidget):
         self.facture_total.setText(self.facture_model.get_total_str())
 
     def add_arduino_upc(self):
+        # self.code_barre = barcode.Barcode()
+        # upc = self.code_barre.decode.decode('utf-8')
+        # self.facture_model.add_upc(upc)
+        # self.facture_model.layoutChanged.emit()
+        # if not self.pipe.poll():
+        upc = self.pipe.recv().decode('utf-8')
+        if self.facture_model.add_upc(upc):
+            audio.play_sound(audio.Sound.CONFIRM)
+        else:
+            audio.play_sound(audio.Sound.ERROR)
 
-        self.code_barre = barcode.Barcode()
-        upc = self.code_barre.decode.decode('utf-8')
-        self.facture_model.add_upc(upc)
-        self.facture_model.layoutChanged.emit()
-
-def create_facture_table():
-    pass
 
 def show_error_dialog(msg: str):
     msg_box = QMessageBox()
@@ -150,15 +157,19 @@ def show_error_dialog(msg: str):
 
 
 if __name__ == '__main__':
-    
-
     app = QApplication(sys.argv)
 
-    window = MainView()
+    parent_conn, child_conn = mp.Pipe()
+    window = MainView(parent_conn)
     window.setWindowTitle('Équipe 12 - PIE Engineering')
     window.resize(1000,800)
     window.show()
-    p_scan = multiprocessing.Process(target=comm.__name__)
-    p_scan.start()
-    p_scan.join()
+
+    # scan.code_scanned.connect(window.main_widget.add_arduino_upc)
+    # sgn = Signal(str)
+    scanner = scanner.Scanner(child_conn)
+    scanner.code_scanned.connect(window.main_widget.add_arduino_upc)
+    # sgn.connect(window.main_widget.add_arduino_upc)
+    # p_scan = mp.Process(target=scanner)
+    scanner.start()
     sys.exit(app.exec())

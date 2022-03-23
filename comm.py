@@ -21,11 +21,15 @@ class ArduinoComm:
         self.format = format
         self.values = []
 
+    def clear_buffer(self) -> None:
+        self.ser.flushInput()
+        self.ser.flushOutput()
+        # self.ser.reset_input_buffer()
 
     def read(self):
         return self.ser.read(self.readsize)
     
-    def write(self):
+    def write_flag(self):
         self.ser.write(b'\x00')
 
     def close(self):
@@ -86,20 +90,22 @@ def show_sweeps(comm: ArduinoComm, n: int):
 def find_barcode(comm: ArduinoComm):
     decoded = None
     while decoded is None:
-        values = get_sweep(comm)
-        barcode = Barcode.from_sample_list(values)
-        decoded = barcode.decode()
-    comm.write()
-    comm.ser.flushInput()
+        # values = get_sweep(comm)
+        # barcode = Barcode.from_sample_list(values)
+        # decoded = barcode.decode()
+        time.sleep(5)
+        decoded = b'043396115927'
+    comm.clear_buffer()
+    comm.write_flag()
+    comm.clear_buffer()
+
     play_sound(Sound.CONFIRM)
-    time.sleep(1)
     return decoded
 
-
-if __name__ == '__main__':
-    decoded = None
+def work():
     with ArduinoComm() as comm:
-        # decoded = show_sweeps(comm, 10)
+        wait_until(comm, SWEEP_END)
         while True:
             decoded = find_barcode(comm)
+            time.sleep(2)
             print(decoded)
