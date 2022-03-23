@@ -1,7 +1,7 @@
-from curses import baudrate
+import time
 import serial
 import struct
-from barcode import Barcode, barcode2timeseries
+from barcode import Barcode
 import matplotlib.pyplot as plt
 import serial.tools.list_ports
 from audio import play_sound, Sound
@@ -24,7 +24,9 @@ class ArduinoComm:
 
     def read(self):
         return self.ser.read(self.readsize)
-        # return struct.unpack(self.format, self.ser.read(1))[0]
+    
+    def write(self):
+        self.ser.write(b'\x00')
 
     def close(self):
         self.ser.close()
@@ -77,6 +79,7 @@ def show_sweeps(comm: ArduinoComm, n: int):
         barcode = Barcode.from_sample_list(values)
         barcode.show_image()
         decoded = barcode.decode()
+        print(decoded)
         if decoded: break
     return decoded
 
@@ -86,15 +89,17 @@ def find_barcode(comm: ArduinoComm):
         values = get_sweep(comm)
         barcode = Barcode.from_sample_list(values)
         decoded = barcode.decode()
+    comm.write()
+    comm.ser.flushInput()
+    play_sound(Sound.CONFIRM)
+    time.sleep(1)
     return decoded
 
 
 if __name__ == '__main__':
     decoded = None
     with ArduinoComm() as comm:
-        decoded = show_sweeps(comm, 10)
-        # decoded = find_barcode(comm)
-    
-    if decoded:
-        print(decoded)
-        play_sound(Sound.CONFIRM)
+        # decoded = show_sweeps(comm, 10)
+        while True:
+            decoded = find_barcode(comm)
+            print(decoded)
