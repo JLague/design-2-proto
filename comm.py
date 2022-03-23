@@ -4,32 +4,32 @@ import struct
 from barcode import Barcode
 import matplotlib.pyplot as plt
 import serial.tools.list_ports
-from audio import play_sound, Sound
 
 
 READ_SIZE = 1 # bytes
 FORMAT = '<B'
-SWEEP_END = b'\x02'
-PATTERN_END = b'\x03'
+SCAN_END = b'\x02'
+CLEARED_BUFFER = b'\x04'
+FOUND_CODE = b'\x00'
 BAUDRATE = 1000000
+SCAN_END_DELAY = 2
 
 class ArduinoComm:
     def __init__(self, port=None, readsize=READ_SIZE, baudrate=BAUDRATE):
+        # Find port if not specified
         if port is None: port = find_arduino_port()
+
         self.ser = serial.Serial(port, baudrate, timeout=None)
         self.readsize = readsize
-        self.format = format
         self.values = []
 
     def clear_buffer(self) -> None:
-        self.ser.flushInput()
-        self.ser.flushOutput()
-        # self.ser.reset_input_buffer()
+        while self.read_byte() != CLEARED_BUFFER: pass
 
-    def read(self):
+    def read_byte(self):
         return self.ser.read(self.readsize)
     
-    def write_flag(self):
+    def write_flag(self, flag: bytes):
         self.ser.write(b'\x00')
 
     def close(self):
@@ -58,11 +58,10 @@ def find_arduino_port():
 def get_sweep(comm: ArduinoComm) -> list:
     values = []
     while True:
-        val = comm.read()
-        if val == SWEEP_END:
+        val = comm.read_byte()
+        if val == SCAN_END:
             break
         values.append(decode_byte(val))
-    # values = values[len(values)//4+200:len(values)//2+100]
     return values
 
 def get_n_sweeps(comm: ArduinoComm, n: int) -> list:
@@ -74,9 +73,9 @@ def get_n_sweeps(comm: ArduinoComm, n: int) -> list:
 def wait_until(comm: ArduinoComm, flags: bytes) -> None:
     val = 0
     while val != flags:
-        val = comm.read()
+        val = comm.read_byte()
 
-def show_sweeps(comm: ArduinoComm, n: int):
+def show_sweeps(comm: ArduinoComm, n: int) -> bytes:
     decoded = None
     for _ in range(n):
         values = get_sweep(comm)
@@ -87,24 +86,25 @@ def show_sweeps(comm: ArduinoComm, n: int):
         if decoded: break
     return decoded
 
-def find_barcode(comm: ArduinoComm):
+def find_barcode(comm: ArduinoComm) -> bytes:
     decoded = None
     while decoded is None:
-        # values = get_sweep(comm)
-        # barcode = Barcode.from_sample_list(values)
-        # decoded = barcode.decode()
-        time.sleep(5)
-        decoded = b'043396115927'
-    comm.clear_buffer()
-    comm.write_flag()
+        values = get_sweep(comm)
+        barcode = Barcode.from_sample_list(values)
+        decoded = barcode.decode()
+
+    comm.write_flag(FOUND_CODE)
     comm.clear_buffer()
 
-    play_sound(Sound.CONFIRM)
     return decoded
+
+def find_barcode_test():
+    time.sleep(2)
+    return b'000000094122'
 
 def work():
     with ArduinoComm() as comm:
-        wait_until(comm, SWEEP_END)
+        wait_until(comm, SCAN_END)
         while True:
             decoded = find_barcode(comm)
             time.sleep(2)

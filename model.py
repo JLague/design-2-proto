@@ -38,9 +38,10 @@ class FactureModel(QAbstractTableModel):
             return self.headers[section]
         return None
     
-    def remove_rows(self, indices: list[int]):
-        for index in indices:
-            self.facture.pop(index.row())
+    def remove_rows(self, indices: list):
+        rows = set(index.row() for index in indices)
+        for row in rows:
+            self.facture.pop(row)
         self.layoutChanged.emit()
         
     def delete_last_row(self):

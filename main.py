@@ -1,9 +1,7 @@
 import model
 import sys
 import scanner
-import multiprocessing as mp
 import audio
-from multiprocessing.connection import Pipe, Connection
 from pathlib import Path
 from PySide6.QtWidgets import *
 from PySide6.QtGui import *
@@ -12,7 +10,7 @@ from PySide6.QtCore import *
 
 ICON_PATH = Path('data/ulaval_shield.svg')
 class MainView(QMainWindow):
-    def __init__(self, pipe: Connection) -> None:
+    def __init__(self) -> None:
         QMainWindow.__init__(self)
         self.setWindowIcon(QIcon(ICON_PATH.as_posix()))
 
@@ -25,22 +23,17 @@ class MainView(QMainWindow):
 
         self.file_menu.addAction(exit_action)
 
-        self.main_widget = MainWidget(pipe)
+        self.main_widget = MainWidget()
         self.setCentralWidget(self.main_widget)
-
-        # self.timer = QTimer()
-        # self.timer.timeout.connect(self.main_widget.add_arduino_upc)
-        # self.timer.start(1000)
     
     @Slot()
-    def exit_app(self, checked):
+    def exit_app(self):
         QApplication.quit()
 
 
 class MainWidget(QWidget):
-    def __init__(self, pipe: Connection) -> None:
+    def __init__(self) -> None:
         QWidget.__init__(self)
-        self.pipe = pipe
 
         # Create widgets
         self.setup_facture_table()
@@ -97,9 +90,9 @@ class MainWidget(QWidget):
         self.upc_input = QLineEdit()
         self.upc_input.setPlaceholderText("Code UPC")
         self.add_btn = QPushButton("Ajouter")
-        self.del_rows_btn = QPushButton("Effacer une ligne selectionee")
+        self.del_rows_btn = QPushButton("Effacer les lignes sélectionnées")
         self.clear_btn = QPushButton("Vider la facture")
-        self.delete_row = QPushButton("Supprimer la derniere ligne")
+        self.delete_row = QPushButton("Supprimer la dernière ligne")
 
         # Add widgets to form
         self.upc_form = QVBoxLayout()
@@ -116,7 +109,6 @@ class MainWidget(QWidget):
     
     def delete_last_row(self):
         self.facture_model.delete_last_row()
-        # self.facture_table.layoutChange.emit()
 
     def add_upc(self):
         upc = self.upc_input.text()
@@ -135,13 +127,8 @@ class MainWidget(QWidget):
     def update_total(self):
         self.facture_total.setText(self.facture_model.get_total_str())
 
-    def add_arduino_upc(self):
-        # self.code_barre = barcode.Barcode()
-        # upc = self.code_barre.decode.decode('utf-8')
-        # self.facture_model.add_upc(upc)
-        # self.facture_model.layoutChanged.emit()
-        # if not self.pipe.poll():
-        upc = self.pipe.recv().decode('utf-8')
+    @Slot()
+    def add_arduino_upc(self, upc: str):
         if self.facture_model.add_upc(upc):
             audio.play_sound(audio.Sound.CONFIRM)
         else:
@@ -159,17 +146,16 @@ def show_error_dialog(msg: str):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
-    parent_conn, child_conn = mp.Pipe()
-    window = MainView(parent_conn)
+    window = MainView()
     window.setWindowTitle('Équipe 12 - PIE Engineering')
     window.resize(1000,800)
     window.show()
 
-    # scan.code_scanned.connect(window.main_widget.add_arduino_upc)
-    # sgn = Signal(str)
-    scanner = scanner.Scanner(child_conn)
+    # Start the scanner thread
+    scanner = scanner.Scanner()
     scanner.code_scanned.connect(window.main_widget.add_arduino_upc)
-    # sgn.connect(window.main_widget.add_arduino_upc)
-    # p_scan = mp.Process(target=scanner)
     scanner.start()
+
+    app.aboutToQuit.connect(scanner.stop)
+
     sys.exit(app.exec())

@@ -1,32 +1,31 @@
 import multiprocessing as mp
-from multiprocessing.connection import Connection
-from PySide6.QtCore import QObject, Signal, QThread, QRunnable
-from threading import Thread
+from PySide6.QtCore import Signal, QThread
 import comm
-
-class ScannerWrapper(QObject):
-    code_scanned = Signal(str)
-    def __init__(self, parent=None) -> None:
-        super().__init__(parent)
-        self.scanner = Scanner(self.code_scanned)
 
 class Scanner(QThread):
     code_scanned = Signal(str)
-    def __init__(self, pipe: Connection, parent=None) -> None:
-        QThread.__init__(self)
-        # QObject.__init__(self, parent)
-        # mp.Process.__init__(self)
-        # QThread.__init__(self)
-        # Thread.__init__(self)
-        self.pipe = pipe
-        # self.code_scanned = Signal(str)
+    def __init__(self, parent=None) -> None:
+        QThread.__init__(self, parent)
+        self.is_running = False
+
+    def scan_test(self):
+        counter = 0
+        while self.is_running and counter < 3:
+            code = comm.find_barcode_test()
+            if code: self.code_scanned.emit(code.decode('utf-8'))
+            counter += 1
+
+    def scan(self):
+        with comm.ArduinoComm() as ard_comm:
+            while self.is_running:
+                code = comm.find_barcode(ard_comm)
+                if code: self.code_scanned.emit(code.decode('utf-8'))
 
     def run(self):
-        with comm.ArduinoComm() as ard_comm:
-            comm.wait_until(ard_comm, comm.SWEEP_END)
-            while True:
-                code = comm.find_barcode(ard_comm)
-                if code:
-                    self.pipe.send(code)
-                    self.code_scanned.emit(code)
-                    # print(code)
+        self.is_running = True
+        self.scan()
+        # self.scan_test()
+
+    def stop(self):
+        self.is_running = False
+        self.wait()
