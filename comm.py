@@ -4,6 +4,7 @@ from barcode import Barcode, barcode2timeseries
 import matplotlib.pyplot as plt
 import serial.tools.list_ports
 
+
 READ_SIZE = 1 # bytes
 FORMAT = '<B'
 SWEEP_END = b'\x02'
@@ -16,6 +17,7 @@ class ArduinoComm:
         self.readsize = readsize
         self.format = format
         self.values = []
+
 
     def read(self):
         return self.ser.read(self.readsize)
@@ -85,6 +87,7 @@ if __name__ == '__main__':
         samples = get_n_sweeps(comm, 2)
         barcode = Barcode.from_sample_list(samples)
         print(barcode.decode())
+        
 
 # if __name__ == '__main__':
 #     with ArduinoComm() as comm:

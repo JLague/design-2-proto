@@ -1,3 +1,6 @@
+from concurrent.futures import process
+from email.mime import audio
+import multiprocessing
 import model
 import barcode
 import sys
@@ -5,6 +8,8 @@ from pathlib import Path
 from PySide6.QtWidgets import *
 from PySide6.QtGui import *
 from PySide6.QtCore import *
+import multiprocessing 
+import comm
 
 ICON_PATH = Path('data/ulaval_shield.svg')
 class MainView(QMainWindow):
@@ -143,12 +148,17 @@ def show_error_dialog(msg: str):
     msg_box.setWindowTitle("Erreur")
     msg_box.exec()
 
+
 if __name__ == '__main__':
+    
+
     app = QApplication(sys.argv)
 
     window = MainView()
     window.setWindowTitle('Équipe 12 - PIE Engineering')
     window.resize(1000,800)
     window.show()
-
+    p_scan = multiprocessing.Process(target=comm.__name__)
+    p_scan.start()
+    p_scan.join()
     sys.exit(app.exec())
